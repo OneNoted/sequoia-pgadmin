@@ -49,6 +49,34 @@ If you prefer to use the helper script from this repo on the VPS:
 sudo env PGADMIN_HOST_PORT=5050 ./scripts/tailscale-serve.sh
 ```
 
+## Auto-discover PostgreSQL containers
+
+`pgAdmin` can import server definitions from JSON, and the included sync script uses that to discover running PostgreSQL containers on the VPS and add them into a reserved `Auto-discovered / ...` group while preserving any manual servers in other groups.
+
+Run it on the VPS host where Docker is available:
+
+```sh
+./scripts/sync_pgadmin_servers.py --pgadmin-user sequoia.branchmasters@gmail.com
+```
+
+What it does:
+
+- finds the running `pgAdmin` container
+- finds running PostgreSQL-style containers on the same Docker host
+- connects the `pgAdmin` container to their Docker networks if needed
+- imports or refreshes those servers inside `pgAdmin`
+
+What it does not do:
+
+- it does not import saved database passwords
+- it does not remove any manual servers outside the `Auto-discovered / ...` groups
+
+If you want this to stay in sync automatically, run it from cron on the VPS, for example every 10 minutes:
+
+```sh
+*/10 * * * * /path/to/sequoia-pgadmin/scripts/sync_pgadmin_servers.py --pgadmin-user sequoia.branchmasters@gmail.com >> /var/log/pgadmin-sync.log 2>&1
+```
+
 ## Verification
 
 On the VPS host:
